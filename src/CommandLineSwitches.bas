@@ -4,9 +4,9 @@ Attribute VB_Description = "Reads the program's --name switches on its command l
 '@ModuleDescription("Reads the program's --name switches on its command line. A switch it is not asked about is ignored, never refused: the runtime leaves its own switches, such as --unattended, on the command line.")
 Option Explicit
 
-'@Description("Gets the value that follows a --name switch on the command line. Another switch is no value: --seed --unattended has no seed.")
+'@Description("Gets the value that follows a --name switch on the command line. Another switch is not a value: --seed --unattended has no seed.")
 Public Function TryGetArgument(ByVal commandLine As String, ByVal argumentName As String, ByRef outValue As String) As Boolean
-Attribute TryGetArgument.VB_Description = "Gets the value that follows a --name switch on the command line. Another switch is no value: --seed --unattended has no seed."
+Attribute TryGetArgument.VB_Description = "Gets the value that follows a --name switch on the command line. Another switch is not a value: --seed --unattended has no seed."
     Dim arguments As Variant
     arguments = Split(Trim$(commandLine), " ")
     Dim index As Long
