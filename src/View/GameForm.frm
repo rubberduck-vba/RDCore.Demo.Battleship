@@ -13,24 +13,23 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute VB_Description = "The game's window. It has no designed controls: it makes its grids, player pickers, fleet panels, status line and Ready button when it is loaded. FormView paints it, and what the person does in it is sent to the view's events."
+Attribute VB_Description = "The game's window. It has no designed controls: it makes its grids, player pickers, status line and Ready button when it is loaded. FormView paints it, and what the person does in it is sent to the view's events."
 '@Folder("NavalBattle.View")
-'@ModuleDescription("The game's window. It has no designed controls: it makes its grids, player pickers, fleet panels, status line and Ready button when it is loaded. FormView paints it, and what the person does in it is sent to the view's events.")
+'@ModuleDescription("The game's window. It has no designed controls: it makes its grids, player pickers, status line and Ready button when it is loaded. FormView paints it, and what the person does in it is sent to the view's events.")
 Option Explicit
 
 Private Const GridSize As Long = 10
 Private Const CellSize As Long = 18
 Private Const Margin As Long = 12
 Private Const GridGap As Long = 48
-Private Const FormWidth As Long = 816
+' the client area's width in points: the designer block's ClientWidth, in twips (20 to the point).
+Private Const FormWidth As Long = 16320 \ 20
 Private Const LineHeight As Long = 18
 
 Private Const PickerTop As Long = Margin
 Private Const GridTop As Long = PickerTop + LineHeight + 10
-Private Const FleetTop As Long = GridTop + (GridSize + 1) * CellSize + 8
-Private Const FleetHeight As Long = 5 * 14
 Private Const PanelFontSize As Long = 10
-Private Const StatusTop As Long = FleetTop + FleetHeight + 6
+Private Const StatusTop As Long = GridTop + (GridSize + 1) * CellSize + 8
 Private Const StatusHeight As Long = 2 * LineHeight
 Private Const ReadyTop As Long = StatusTop + StatusHeight + 4
 Private Const ReadyWidth As Long = 72
@@ -69,7 +68,6 @@ Private this As TForm
 Private cells(PlayerGrid1 To PlayerGrid2, 1 To GridSize, 1 To GridSize) As GridCell
 Private paintedColours(PlayerGrid1 To PlayerGrid2, 1 To GridSize, 1 To GridSize) As Long
 Private paintedCaptions(PlayerGrid1 To PlayerGrid2, 1 To GridSize, 1 To GridSize) As String
-Private fleetPanels(PlayerGrid1 To PlayerGrid2) As MSForms.Label
 Private statusLine As MSForms.Label
 
 Private WithEvents cellEvents As GridCellEvents
@@ -84,10 +82,10 @@ Attribute readyButton.VB_VarHelpID = -1
 Private Sub UserForm_Initialize()
     Set cellEvents = New GridCellEvents
 
-    ' the designer block sizes the window: 16320 x 7845 twips (FormWidth is its width in points), 1088 x 523 pixels at 96 dpi. The board is
-    ' centred on it. The form's picture (GameForm.frx, from assets/game-form-background.jpg) is stretched over the whole of it, behind the board:
-    ' the labels are transparent, and so are the cells of open water. The fleet panels and the status line are text over the picture, in a
-    ' bold, larger font to stay readable. Without a picture, the water colour shows.
+    ' the designer block sizes the window: 16320 x 7845 twips, 816 x 392 points, 1088 x 523 pixels at 96 dpi. The board is centred on it. The
+    ' form's picture (GameForm.frx, from assets/game-form-background.jpg) is stretched over the whole of it, behind the board: the labels are
+    ' transparent, and so are the cells of open water. The status line is text over the picture, in a bold, larger font to stay readable.
+    ' Without a picture, the water colour shows.
     Me.BackColor = WaterColour
 
     Dim boardLeft As Long
@@ -101,7 +99,6 @@ Private Sub UserForm_Initialize()
     Dim gridId As PlayGridId
     For gridId = PlayerGrid1 To PlayerGrid2
         AddGrid gridId
-        Set fleetPanels(gridId) = AddPanel("Grid" & gridId & "Fleet", GridLeft(gridId), FleetTop, GridWidth, FleetHeight, "Fleet: no ship placed yet.")
     Next
 
     Set firstPlayerPicker = AddPlayerPicker(PlayerGrid1, "Human")
@@ -146,12 +143,6 @@ End Sub
 Public Sub SetStatus(ByVal text As String)
 Attribute SetStatus.VB_Description = "Sets the text of the status line."
     statusLine.Caption = text
-End Sub
-
-'@Description("Sets the text of a grid's fleet panel.")
-Public Sub SetFleet(ByVal gridId As PlayGridId, ByVal text As String)
-Attribute SetFleet.VB_Description = "Sets the text of a grid's fleet panel."
-    fleetPanels(gridId).Caption = text
 End Sub
 
 '@Description("The person places their ships on the given grid: pointing at a cell moves the ship there, a right-click turns it, and a click places it.")
@@ -350,7 +341,6 @@ End Function
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
     Set this.ViewEvents = Nothing
     Erase cells
-    Erase fleetPanels
     RaiseEvent Closed
 End Sub
 

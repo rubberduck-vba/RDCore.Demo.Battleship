@@ -7,9 +7,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
-Attribute VB_Description = "An implementation of IGridViewCommands that plays the game in the game form: the commands paint its grids, fleet panels and status line, and what the person does in it is sent to the adapter."
+Attribute VB_Description = "An implementation of IGridViewCommands that plays the game in the game form: the commands paint its grids and status line, and what the person does in it is sent to the adapter."
 '@Folder("NavalBattle.View")
-'@ModuleDescription("An implementation of IGridViewCommands that plays the game in the game form: the commands paint its grids, fleet panels and status line, and what the person does in it is sent to the adapter.")
+'@ModuleDescription("An implementation of IGridViewCommands that plays the game in the game form: the commands paint its grids and status line, and what the person does in it is sent to the adapter.")
 Option Explicit
 Implements IGridViewCommands
 
@@ -75,7 +75,6 @@ End Sub
 
 Private Sub IGridViewCommands_OnConfirmShipPosition(ByVal player As IPlayer, ByVal newShip As IShip)
     If IsOpen Then window.PaintGrid player.PlayGrid, True
-    If IsOpen Then window.SetFleet player.PlayGrid.gridId, FleetText(player.PlayGrid)
     Debug.Print "Grid " & player.PlayGrid.gridId & " places its " & newShip.Name & "."
 End Sub
 
@@ -98,7 +97,6 @@ End Sub
 
 Private Sub IGridViewCommands_OnUpdateFleetStatus(ByVal player As IPlayer, ByVal hitShip As IShip, Optional ByVal showAIStatus As Boolean = False)
     this.LastHitShip = hitShip.Name
-    If IsOpen Then window.SetFleet player.PlayGrid.gridId, FleetText(player.PlayGrid)
 End Sub
 
 Private Sub IGridViewCommands_OnMiss(ByVal gridId As PlayGridId)
@@ -115,7 +113,6 @@ End Sub
 
 Private Sub IGridViewCommands_OnRefreshGrid(ByVal grid As PlayerGrid)
     If IsOpen Then window.PaintGrid grid, ShowsShips(grid.gridId)
-    If IsOpen Then window.SetFleet grid.gridId, FleetText(grid)
 End Sub
 
 Private Sub IGridViewCommands_OnLockGrid(ByVal gridId As PlayGridId)
@@ -153,15 +150,4 @@ End Function
 
 Private Function OtherGrid(ByVal gridId As PlayGridId) As PlayGridId
     OtherGrid = IIf(gridId = PlayerGrid1, PlayerGrid2, PlayerGrid1)
-End Function
-
-' a line for each ship of the fleet: its name, and whether it is afloat or sunk.
-Private Function FleetText(ByVal grid As PlayerGrid) As String
-    Dim result As String
-    Dim item As IShip
-    For Each item In grid.Fleet
-        If Len(result) > 0 Then result = result & vbCrLf
-        result = result & item.Name & ": " & IIf(item.IsSunken, "sunk", "afloat")
-    Next
-    FleetText = result
 End Function
