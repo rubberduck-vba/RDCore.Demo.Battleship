@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} GameForm
    Caption         =   "Naval battle"
-   ClientHeight    =   7840
+   ClientHeight    =   7845
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   13380
+   ClientWidth     =   8880
    OleObjectBlob   =   "GameForm.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -82,8 +82,10 @@ Attribute readyButton.VB_VarHelpID = -1
 Private Sub UserForm_Initialize()
     Set cellEvents = New GridCellEvents
 
-    ' the designer block sizes the window: the board on the left, 444 x 392 points, and on its right a picture area 225 points wide, where the form's
-    ' picture (rubber ducks at sea, from GameForm.frx) is aligned at the bottom right.
+    ' the designer block sizes the window to the board: 8880 x 7845 twips, 592 x 523 pixels at 96 dpi. The form's picture (GameForm.frx) is stretched
+    ' over the whole of it, behind the board: the labels are transparent, and so are the cells of open water. Without a picture, the water colour shows.
+    Me.BackColor = WaterColour
+
     Dim boardWidth As Long
     boardWidth = GridLeft(PlayerGrid2) + GridWidth + Margin
 
@@ -205,10 +207,18 @@ Attribute PaintGrid.VB_Description = "Paints a grid as it stands: hits, misses, 
     Next
 End Sub
 
-' a cell is painted only when it changes: each change is a call to Microsoft Forms, and a grid is painted after every shot.
+' a cell is painted only when it changes: each change is a call to Microsoft Forms, and a grid is painted after every shot. A cell of open water is
+' transparent, so the form's picture shows through it; any other cell is filled with its colour.
 Private Sub PaintCell(ByVal gridId As PlayGridId, ByVal X As Long, ByVal Y As Long, ByVal colour As Long, Optional ByVal text As String = vbNullString)
     If paintedColours(gridId, X, Y) <> colour Then
-        cells(gridId, X, Y).Control.BackColor = colour
+        With cells(gridId, X, Y).Control
+            If colour = WaterColour Then
+                .BackStyle = fmBackStyleTransparent
+            Else
+                .BackColor = colour
+                .BackStyle = fmBackStyleOpaque
+            End If
+        End With
         paintedColours(gridId, X, Y) = colour
     End If
     If paintedCaptions(gridId, X, Y) <> text Then
@@ -357,7 +367,6 @@ Private Sub AddGrid(ByVal gridId As PlayGridId)
 
             Dim cellLabel As MSForms.Label
             Set cellLabel = AddLabel("Grid" & gridId & "Cell" & CellName(position), leftEdge + X * CellSize, GridTop + Y * CellSize, CellSize, CellSize, vbNullString, fmTextAlignCenter)
-            cellLabel.BackColor = WaterColour
             paintedColours(gridId, X, Y) = WaterColour
             cellLabel.BorderStyle = fmBorderStyleSingle
             cellLabel.BorderColor = LineColour
@@ -399,6 +408,7 @@ Private Function AddLabel(ByVal controlName As String, ByVal leftEdge As Single,
         .Height = labelHeight
         .Caption = text
         .TextAlign = alignment
+        .BackStyle = fmBackStyleTransparent
     End With
     Set AddLabel = result
 End Function
