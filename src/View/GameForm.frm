@@ -4,7 +4,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} GameForm
    ClientHeight    =   7845
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   8880
+   ClientWidth     =   16320
    OleObjectBlob   =   "GameForm.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -21,16 +21,18 @@ Option Explicit
 Private Const GridSize As Long = 10
 Private Const CellSize As Long = 18
 Private Const Margin As Long = 12
-Private Const GridGap As Long = 24
+Private Const GridGap As Long = 48
+Private Const FormWidth As Long = 816
 Private Const LineHeight As Long = 18
 
 Private Const PickerTop As Long = Margin
 Private Const GridTop As Long = PickerTop + LineHeight + 10
 Private Const FleetTop As Long = GridTop + (GridSize + 1) * CellSize + 8
-Private Const FleetHeight As Long = 5 * 12
-Private Const StatusTop As Long = FleetTop + FleetHeight + 8
+Private Const FleetHeight As Long = 5 * 14
+Private Const PanelFontSize As Long = 10
+Private Const StatusTop As Long = FleetTop + FleetHeight + 6
 Private Const StatusHeight As Long = 2 * LineHeight
-Private Const ReadyTop As Long = StatusTop + StatusHeight + 6
+Private Const ReadyTop As Long = StatusTop + StatusHeight + 4
 Private Const ReadyWidth As Long = 72
 Private Const ReadyHeight As Long = 24
 
@@ -82,20 +84,24 @@ Attribute readyButton.VB_VarHelpID = -1
 Private Sub UserForm_Initialize()
     Set cellEvents = New GridCellEvents
 
-    ' the designer block sizes the window to the board: 8880 x 7845 twips, 592 x 523 pixels at 96 dpi. The form's picture (GameForm.frx) is stretched
-    ' over the whole of it, behind the board: the labels are transparent, and so are the cells of open water. Without a picture, the water colour shows.
+    ' the designer block sizes the window: 16320 x 7845 twips (FormWidth is its width in points), 1088 x 523 pixels at 96 dpi. The board is
+    ' centred on it. The form's picture (GameForm.frx, from assets/game-form-background.jpg) is stretched over the whole of it, behind the board:
+    ' the labels are transparent, and so are the cells of open water. The fleet panels and the status line are text over the picture, in a
+    ' bold, larger font to stay readable. Without a picture, the water colour shows.
     Me.BackColor = WaterColour
 
-    Dim boardWidth As Long
-    boardWidth = GridLeft(PlayerGrid2) + GridWidth + Margin
+    Dim boardLeft As Long
+    boardLeft = GridLeft(PlayerGrid1)
+    Dim boardRight As Long
+    boardRight = GridLeft(PlayerGrid2) + GridWidth
 
-    Set statusLine = AddLabel("Status", Margin, StatusTop, boardWidth - 2 * Margin, StatusHeight, "Pick the players, then click Ready.")
+    Set statusLine = AddPanel("Status", boardLeft, StatusTop, boardRight - boardLeft, StatusHeight, "Pick the players, then click Ready.")
     statusLine.WordWrap = True
 
     Dim gridId As PlayGridId
     For gridId = PlayerGrid1 To PlayerGrid2
         AddGrid gridId
-        Set fleetPanels(gridId) = AddLabel("Grid" & gridId & "Fleet", GridLeft(gridId), FleetTop, GridWidth, FleetHeight, "Fleet: no ship placed yet.")
+        Set fleetPanels(gridId) = AddPanel("Grid" & gridId & "Fleet", GridLeft(gridId), FleetTop, GridWidth, FleetHeight, "Fleet: no ship placed yet.")
     Next
 
     Set firstPlayerPicker = AddPlayerPicker(PlayerGrid1, "Human")
@@ -104,7 +110,7 @@ Private Sub UserForm_Initialize()
     Set readyButton = Me.Controls.Add("Forms.CommandButton.1", "Ready", True)
     With readyButton
         .Caption = "Ready"
-        .Left = boardWidth - Margin - ReadyWidth
+        .Left = boardRight - ReadyWidth
         .Top = ReadyTop
         .Width = ReadyWidth
         .Height = ReadyHeight
@@ -413,8 +419,18 @@ Private Function AddLabel(ByVal controlName As String, ByVal leftEdge As Single,
     Set AddLabel = result
 End Function
 
+' a label of text over the picture, transparent like the others, in a bold, larger font so it stays readable over the water and the ducks.
+Private Function AddPanel(ByVal controlName As String, ByVal leftEdge As Single, ByVal topEdge As Single, ByVal panelWidth As Single, ByVal panelHeight As Single, ByVal text As String) As MSForms.Label
+    Dim result As MSForms.Label
+    Set result = AddLabel(controlName, leftEdge, topEdge, panelWidth, panelHeight, text)
+    result.Font.Bold = True
+    result.Font.Size = PanelFontSize
+    Set AddPanel = result
+End Function
+
+' the grids side by side, GridGap apart, centred on the form.
 Private Function GridLeft(ByVal gridId As PlayGridId) As Long
-    GridLeft = Margin + (gridId - PlayerGrid1) * (GridWidth + GridGap)
+    GridLeft = (FormWidth - 2 * GridWidth - GridGap) \ 2 + (gridId - PlayerGrid1) * (GridWidth + GridGap)
 End Function
 
 Private Property Get GridWidth() As Long
