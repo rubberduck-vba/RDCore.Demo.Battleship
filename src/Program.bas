@@ -8,16 +8,16 @@ Private Const ClassNotRegistered As Long = 429
 
 Private controller As IGameController
 
-'@Description("Plays a game: in the game form on Windows, and in the console elsewhere, or when /console is on the command line. The command line can name the players, /player1 <player> /player2 <player> (Human, Random, Fair-play or Merciless), and fix the random seed so a game can be replayed: /seed <number>. The form opens with the players it names already picked; the console asks for a player it does not name. /test runs the tests instead of a game, in the console.")
+'@Description("Plays a game: in the game form on Windows, and in the console elsewhere, or when --console is on the command line. The command line can name the players, --player1 <player> --player2 <player> (Human, Random, Fair-play or Merciless), and fix the random seed so a game can be replayed: --seed <number>. The form opens with the players it names already picked; the console asks for a player it does not name. --test runs the tests instead of a game, in the console.")
 Public Sub Main()
-Attribute Main.VB_Description = "Plays a game: in the game form on Windows, and in the console elsewhere, or when /console is on the command line. The command line can name the players, /player1 <player> /player2 <player> (Human, Random, Fair-play or Merciless), and fix the random seed so a game can be replayed: /seed <number>. The form opens with the players it names already picked; the console asks for a player it does not name. /test runs the tests instead of a game, in the console."
-    If HasSwitch(Command$, "/test") Then
+Attribute Main.VB_Description = "Plays a game: in the game form on Windows, and in the console elsewhere, or when --console is on the command line. The command line can name the players, --player1 <player> --player2 <player> (Human, Random, Fair-play or Merciless), and fix the random seed so a game can be replayed: --seed <number>. The form opens with the players it names already picked; the console asks for a player it does not name. --test runs the tests instead of a game, in the console."
+    If HasSwitch(Command$, "--test") Then
         TestRunner.RunAll
         Exit Sub
     End If
 
     Dim seed As String
-    If TryGetArgument(Command$, "/seed", seed) And IsNumeric(seed) Then
+    If TryGetArgument(Command$, "--seed", seed) And IsNumeric(seed) Then
         Rnd -1
         Randomize CLng(seed)
     Else
@@ -25,12 +25,12 @@ Attribute Main.VB_Description = "Plays a game: in the game form on Windows, and 
     End If
 
     Dim firstPlayer As String
-    TryGetArgument Command$, "/player1", firstPlayer
+    TryGetArgument Command$, "--player1", firstPlayer
     Dim secondPlayer As String
-    TryGetArgument Command$, "/player2", secondPlayer
+    TryGetArgument Command$, "--player2", secondPlayer
 
 #If Win32 Or Win64 Then
-    If Not HasSwitch(Command$, "/console") Then
+    If Not HasSwitch(Command$, "--console") Then
         If TryPlayInForm(firstPlayer, secondPlayer) Then Exit Sub
     End If
 #End If
@@ -79,9 +79,9 @@ Attribute StartGame.VB_Description = "Makes the controller of a new game, over t
     controller.NewGame
 End Sub
 
-'@Description("Gets the value that follows a /name argument on the command line.")
+'@Description("Gets the value that follows a --name argument on the command line.")
 Private Function TryGetArgument(ByVal commandLine As String, ByVal argumentName As String, ByRef outValue As String) As Boolean
-Attribute TryGetArgument.VB_Description = "Gets the value that follows a /name argument on the command line."
+Attribute TryGetArgument.VB_Description = "Gets the value that follows a --name argument on the command line."
     Dim arguments As Variant
     arguments = Split(Trim$(commandLine), " ")
     Dim index As Long
@@ -95,9 +95,9 @@ Attribute TryGetArgument.VB_Description = "Gets the value that follows a /name a
     TryGetArgument = False
 End Function
 
-'@Description("Whether a /name switch is on the command line.")
+'@Description("Whether a --name switch is on the command line.")
 Private Function HasSwitch(ByVal commandLine As String, ByVal switchName As String) As Boolean
-Attribute HasSwitch.VB_Description = "Whether a /name switch is on the command line."
+Attribute HasSwitch.VB_Description = "Whether a --name switch is on the command line."
     Dim arguments As Variant
     arguments = Split(Trim$(commandLine), " ")
     Dim index As Long
